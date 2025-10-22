@@ -75,6 +75,12 @@
       };
     };
 
+    # No idea why the pub key isn't already there
+    # systemd.services.genPubKey = {
+    #   wantedBy = [ "multi-user.target" ];
+    #   script = "${pkgs.openssh}/bin/ssh-keygen -yf /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub";
+    # };
+
     programs.ssh.knownHosts.ca = {
       hostNames = [ cfg.caDomain ];
       publicKeyFile = cfg.caHostKey;
