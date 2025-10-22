@@ -139,9 +139,6 @@ in pkgs.testers.runNixOSTest {
     builder1.wait_for_unit("multi-user.target")
     builder2.wait_for_unit("multi-user.target")
 
-    builder1.succeed("ssh-keygen -yf /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub")
-    builder2.succeed("ssh-keygen -yf /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub")
-
     time.sleep(25)
 
     builder1.succeed("systemctl restart sshd.service")
