@@ -75,8 +75,14 @@ in pkgs.testers.runNixOSTest {
             builder2.sshPubKeyFile = ./test/builder2SshKey.pub;
           };
         };
-        environment.etc."ca-signing-key/ca-signing-key" = installTestKey ./test/caKey;
-        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./test/caHostKey;
+        environment.etc = {
+          "ca-signing-key/ca-signing-key" = {
+            source = ./test/caKey;
+            mode = "660";
+            group = "signers";
+          };
+          "ssh/ssh_host_ed25519_key" = installTestKey ./test/caHostKey;
+        };
       };
     };
 

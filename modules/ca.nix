@@ -21,13 +21,14 @@
         isSystemUser = true;
         shell = pkgs.bash;
         group = "builder-${builderName}";
-        extraGroups = [ "signer" ];
+        extraGroups = [ "signers" ];
         openssh.authorizedKeys.keyFiles = [ cfg.sshPubKeyFile ];
       }) cfg.builders;
 
-    users.groups = lib.mapAttrs' (builderName: _:
-      lib.nameValuePair "builder-${builderName}" {}
-    ) cfg.builders;
+    users.groups =
+      (lib.mapAttrs' (builderName: _:
+        lib.nameValuePair "builder-${builderName}" {}
+    ) cfg.builders) // { signers = {};};
 
     services.openssh =
       {
@@ -40,29 +41,24 @@
               AllowTcpForwarding no
               PermitTunnel no
               X11Forwarding no
-              ForceCommand sign-host-key ${builtins.readFile cfg.sshPubKeyFile}
+              ForceCommand sign-host-key ${cfg.sshPubKeyFile}
           '') cfg.builders}
 
         '';
       };
 
-    # We need a setuid so the CA file can be used.
-    security.wrappers."sign-host-key" = {
-      setuid = true;
-      owner = "root";
-      group = "signer";
-      permissions = "u+rx,g+x";
-      source = lib.getExe (pkgs.writeShellApplication {
+    environment.systemPackages = [
+      (pkgs.writeShellApplication {
         name = "sign-host-key";
         runtimeInputs = [ pkgs.openssh pkgs.coreutils ];
         text = ''
           tmp=$(mktemp -d)
-          echo "$1" > "$tmp/host.pub"
-          ssh-keygen -h -s /etc/ca-signing-key/ca-signing-key -I garnix-ca "$tmp"/host.pub
+          cat "$1" > "$tmp/host.pub"
+          ssh-keygen -h -s /etc/ca-signing-key/ca-signing-key -V -1d:+1d -I garnix-ca "$tmp"/host.pub
           cat "$tmp/host-cert.pub"
           rm -rf "$tmp"
         '';
-      });
-    };
+      })
+    ];
   };
 }

@@ -49,9 +49,9 @@
       description = "Renew SSH key signature from CA";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
+      script = "${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} sign-host-key > ${cfg.caCertLocation}";
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} sign-host-key ${cfg.sshClientKey} > ${cfg.caCertLocation}";
         # The CA may not be reachable. If that's the case, we want a shorter
         # retry loop than the timer
         Restart = "on-failure";
