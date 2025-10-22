@@ -10,25 +10,11 @@
 
   # For testing only, in production the keys would be generated on the
   # machine on first boot, then public keys only are populated in configs
-  testSshKeys = let
-    mkTestKey = name: rec {
-      priv = pkgs.runCommand
-        name
-        { buildInputs = [ pkgs.openssh ]; }
-        "mkdir $out && ssh-keygen -f $out/${name}";
-      pub = toString (pkgs.runCommand "${name}.pub" {} "cp ${priv}/${name}.pub $out");
-      install = dir: lib.getExe (pkgs.writeShellApplication {
-        name = "install-key-${name}";
-        text = ''
-          cp -r ${priv} ${dir}
-          chmod -R 700 ${dir}
-        '';
-      });
-    };
-  in {
-    ca = mkTestKey "ca-signing-key";
-    client = mkTestKey "client";
+  installTestKey = keyFile: {
+    source = keyFile;
+    mode = "700";
   };
+
 in pkgs.testers.runNixOSTest {
   name = "mainTest";
 
@@ -43,19 +29,19 @@ in pkgs.testers.runNixOSTest {
         buildMachines = [
           {
             sshUser = "builder-ssh";
-            sshKey = "/root/.ssh/client";
+            sshKey = "/etc/ssh/client";
             protocol = "ssh-ng";
             hostName = "cluster";
             systems = [ "x86_64-linux" ];
           }
         ];
       };
+      environment.etc."ssh/client" = installTestKey ./test/clientSshKey;
 
       environment.systemPackages = [(
         pkgs.writeShellApplication {
           name = "run-test-build";
           text = ''
-            ${testSshKeys.client.install "/root/.ssh"}
             cp ${test-derivation} test-package.nix
             date > random
             nix build --file test-package.nix
@@ -66,7 +52,7 @@ in pkgs.testers.runNixOSTest {
 
       programs.ssh = {
         knownHosts.cluster = {
-          publicKeyFile = testSshKeys.ca.pub;
+          publicKeyFile = ./test/caKey.pub;
           certAuthority = true;
         };
         extraConfig = ''
@@ -80,9 +66,15 @@ in pkgs.testers.runNixOSTest {
     ca = {
       imports = [ ./modules/ca.nix ];
       config = {
-        zzz.ca = { enable = true; };
-        services.openssh.enable = true;
+        zzz.ca = {
+          enable = true;
+          builders = {
+            builder1.sshPubKeyFile = ./test/builder1SshKey.pub;
+            builder2.sshPubKeyFile = ./test/builder2SshKey.pub;
+          };
+        };
       };
+      environment.etc."etc/ca-signing-key/ca-signing-key" = installTestKey ./test/caKey;
     };
 
     proxy = { nodes, ... }: {
@@ -98,28 +90,40 @@ in pkgs.testers.runNixOSTest {
       };
     };
 
-    builder1 = {
+    builder1 = { nodes, ... }: {
       imports = [ ./modules/builder.nix ];
       config = {
         zzz.builder = {
           enable = true;
-          clientAuthorizedKeyFiles = [ testSshKeys.client.pub ];
+          name = "builder1";
+          clientAuthorizedKeyFiles = [ ./test/clientSshKey.pub ];
+          caDomain = nodes.ca.networking.primaryIPAddress;
+          caHostKey = ./test/caHostKey.pub;
+          sshClientKey = "/etc/ssh/ssh_host_ed25519_key";
         };
+        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./test/builder1SshKey;
       };
     };
 
-    builder2 = {
+    builder2 = { nodes, ... }: {
       imports = [ ./modules/builder.nix ];
       config = {
         zzz.builder = {
           enable = true;
-          clientAuthorizedKeyFiles = [ testSshKeys.client.pub ];
+          name = "builder2";
+          clientAuthorizedKeyFiles = [ ./test/clientSshKey.pub ];
+          caDomain = nodes.ca.networking.primaryIPAddress;
+          caHostKey = ./test/caHostKey.pub;
+          sshClientKey = "/etc/ssh/ssh_host_ed25519_key";
         };
+        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./test/builder2SshKey;
       };
     };
   };
 
   testScript = ''
+    import json
+
     start_all()
 
     builder1.wait_for_unit("multi-user.target")
@@ -127,22 +131,12 @@ in pkgs.testers.runNixOSTest {
     ca.wait_for_unit("multi-user.target")
     client.wait_for_unit("multi-user.target")
     proxy.wait_for_unit("multi-user.target")
-
     proxy.wait_for_unit("haproxy.service")
 
-    def sign_builder_host_key(builder):
-      # for some reason builders don't have the public host key at this
-      # point? so we need to generate it from the private one.
-      builder.succeed("ssh-keygen -yf /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub")
-
-      hostKey = builder.succeed("cat /etc/ssh/ssh_host_ed25519_key.pub")
-      cert = ca.succeed("sign-host-key '" + hostKey + "'")
-      builder.succeed("echo '" + cert + "' > /etc/ssh/ssh_host_ed25519_key-cert.pub")
-      builder.succeed("systemctl restart sshd.service")
-
-    ca.succeed("${testSshKeys.ca.install "/etc/ca-signing-key"}")
-    sign_builder_host_key(builder1)
-    sign_builder_host_key(builder2)
+    for system in [builder1, builder2, ca, client, proxy]:
+        (_, failed_units_str) = system.systemctl("list-units --failed --output=json")
+        failed_units = json.loads(failed_units_str)
+        assert not failed_units, f"failed units: {', '.join([ unit['unit'] for unit in failed_units ])}"
 
     client.succeed("run-test-build")
   '';
