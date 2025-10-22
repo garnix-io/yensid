@@ -19,7 +19,9 @@
       lib.nameValuePair "builder-${builderName}"
       {
         isSystemUser = true;
+        shell = pkgs.bash;
         group = "builder-${builderName}";
+        extraGroups = [ "signer" ];
         openssh.authorizedKeys.keyFiles = [ cfg.sshPubKeyFile ];
       }) cfg.builders;
 
@@ -28,17 +30,7 @@
     ) cfg.builders;
 
     services.openssh =
-      let signKey = keyFile:
-        pkgs.writeShellApplication {
-             name = "sign-key";
-             text = ''
-               tmp=$(${pkgs.coreutils}/bin/mktemp -d)
-               ${pkgs.openssh}/bin/ssh-keygen -h -s /etc/ca-signing-key/ca-signing-key -I garnix-ca ${keyFile}
-               cat "$tmp/host-cert.pub"
-               rm -rf "$tmp"
-             '';
-      };
-      in {
+      {
         enable = true;
         extraConfig = ''
 
@@ -48,16 +40,21 @@
               AllowTcpForwarding no
               PermitTunnel no
               X11Forwarding no
-              ForceCommand ${signKey cfg.sshPubKeyFile}
+              ForceCommand sign-host-key ${builtins.readFile cfg.sshPubKeyFile}
           '') cfg.builders}
 
         '';
       };
 
-    environment.systemPackages = [
-      (pkgs.writeShellApplication {
+    # We need a setuid so the CA file can be used.
+    security.wrappers."sign-host-key" = {
+      setuid = true;
+      owner = "root";
+      group = "signer";
+      permissions = "u+rx,g+x";
+      source = lib.getExe (pkgs.writeShellApplication {
         name = "sign-host-key";
-        runtimeInputs = [ pkgs.openssh ];
+        runtimeInputs = [ pkgs.openssh pkgs.coreutils ];
         text = ''
           tmp=$(mktemp -d)
           echo "$1" > "$tmp/host.pub"
@@ -65,7 +62,7 @@
           cat "$tmp/host-cert.pub"
           rm -rf "$tmp"
         '';
-      })
-    ];
+      });
+    };
   };
 }

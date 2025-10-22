@@ -20,47 +20,49 @@ in pkgs.testers.runNixOSTest {
 
   nodes = {
     client = { nodes, pkgs, ... }: {
-      nix = {
-        settings.substituters = lib.mkForce [ ];
+      config = {
+        nix = {
+          settings.substituters = lib.mkForce [ ];
 
-        settings.max-jobs = 0;
-        extraOptions = "experimental-features = nix-command flakes";
-        distributedBuilds = true;
-        buildMachines = [
-          {
-            sshUser = "builder-ssh";
-            sshKey = "/etc/ssh/client";
-            protocol = "ssh-ng";
-            hostName = "cluster";
-            systems = [ "x86_64-linux" ];
-          }
-        ];
-      };
-      environment.etc."ssh/client" = installTestKey ./test/clientSshKey;
-
-      environment.systemPackages = [(
-        pkgs.writeShellApplication {
-          name = "run-test-build";
-          text = ''
-            cp ${test-derivation} test-package.nix
-            date > random
-            nix build --file test-package.nix
-            cat result
-          '';
-        }
-      )];
-
-      programs.ssh = {
-        knownHosts.cluster = {
-          publicKeyFile = ./test/caKey.pub;
-          certAuthority = true;
+          settings.max-jobs = 0;
+          extraOptions = "experimental-features = nix-command flakes";
+          distributedBuilds = true;
+          buildMachines = [
+            {
+              sshUser = "builder-ssh";
+              sshKey = "/etc/ssh/client";
+              protocol = "ssh-ng";
+              hostName = "cluster";
+              systems = [ "x86_64-linux" ];
+            }
+          ];
         };
-        extraConfig = ''
-          Host cluster
-            HostName ${nodes.proxy.networking.primaryIPAddress}
-            HostKeyAlias cluster
-        '';
-      };
+        environment.etc."ssh/client" = installTestKey ./test/clientSshKey;
+
+        environment.systemPackages = [(
+          pkgs.writeShellApplication {
+            name = "run-test-build";
+            text = ''
+              cp ${test-derivation} test-package.nix
+              date > random
+              nix build --file test-package.nix
+              cat result
+            '';
+          }
+        )];
+
+        programs.ssh = {
+          knownHosts.cluster = {
+            publicKeyFile = ./test/caKey.pub;
+            certAuthority = true;
+          };
+          extraConfig = ''
+            Host cluster
+              HostName ${nodes.proxy.networking.primaryIPAddress}
+              HostKeyAlias cluster
+          '';
+        };
+       };
     };
 
     ca = {
@@ -73,8 +75,9 @@ in pkgs.testers.runNixOSTest {
             builder2.sshPubKeyFile = ./test/builder2SshKey.pub;
           };
         };
+        environment.etc."ca-signing-key/ca-signing-key" = installTestKey ./test/caKey;
+        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./test/caHostKey;
       };
-      environment.etc."etc/ca-signing-key/ca-signing-key" = installTestKey ./test/caKey;
     };
 
     proxy = { nodes, ... }: {

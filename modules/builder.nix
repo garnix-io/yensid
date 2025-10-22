@@ -51,7 +51,7 @@
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} renew > ${cfg.caCertLocation}";
+        ExecStart = "${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} sign-host-key ${cfg.sshClientKey} > ${cfg.caCertLocation}";
         # The CA may not be reachable. If that's the case, we want a shorter
         # retry loop than the timer
         Restart = "on-failure";
