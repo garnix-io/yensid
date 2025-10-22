@@ -49,7 +49,11 @@
       description = "Renew SSH key signature from CA";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
-      script = "${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} sign-host-key > ${cfg.caCertLocation}";
+      script = ''
+        set -o errexit
+        ${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} sign-host-key > ${cfg.caCertLocation}
+        systemctl restart sshd
+      '';
       serviceConfig = {
         Type = "oneshot";
         # The CA may not be reachable. If that's the case, we want a shorter
@@ -63,6 +67,7 @@
         StartLimitIntervalSec = 0;
         StartLimitBurst = 0;
       };
+
     };
 
     systemd.timers.renewCASignature = {
@@ -78,6 +83,7 @@
     # No idea why the pub key isn't already there
     systemd.services.genPubKey = {
       wantedBy = [ "multi-user.target" ];
+      before = [ "sshd.service" ];
       script = "${pkgs.openssh}/bin/ssh-keygen -yf /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub";
     };
 

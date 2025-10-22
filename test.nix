@@ -132,23 +132,15 @@ in pkgs.testers.runNixOSTest {
 
   testScript = ''
     import json
-    import time
 
     start_all()
 
     builder1.wait_for_unit("multi-user.target")
     builder2.wait_for_unit("multi-user.target")
-
-    time.sleep(25)
-
-    builder1.succeed("systemctl restart sshd.service")
-    builder2.succeed("systemctl restart sshd.service")
-
     ca.wait_for_unit("multi-user.target")
     client.wait_for_unit("multi-user.target")
     proxy.wait_for_unit("multi-user.target")
     proxy.wait_for_unit("haproxy.service")
-
 
     for system in [builder1, builder2, ca, client, proxy]:
         (_, failed_units_str) = system.systemctl("list-units --failed --output=json")
