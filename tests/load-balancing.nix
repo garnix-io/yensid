@@ -37,7 +37,7 @@ in pkgs.testers.runNixOSTest {
             }
           ];
         };
-        environment.etc."ssh/client" = installTestKey ./test/clientSshKey;
+        environment.etc."ssh/client" = installTestKey ./fixtures/clientSshKey;
 
         environment.systemPackages = [(
           pkgs.writeShellApplication {
@@ -53,7 +53,7 @@ in pkgs.testers.runNixOSTest {
 
         programs.ssh = {
           knownHosts.cluster = {
-            publicKeyFile = ./test/caKey.pub;
+            publicKeyFile = ./fixtures/caKey.pub;
             certAuthority = true;
           };
           extraConfig = ''
@@ -71,17 +71,17 @@ in pkgs.testers.runNixOSTest {
         zzz.ca = {
           enable = true;
           builders = {
-            builder1.sshPubKeyFile = ./test/builder1SshKey.pub;
-            builder2.sshPubKeyFile = ./test/builder2SshKey.pub;
+            builder1.sshPubKeyFile = ./fixtures/builder1SshKey.pub;
+            builder2.sshPubKeyFile = ./fixtures/builder2SshKey.pub;
           };
         };
         environment.etc = {
           "ca-signing-key/ca-signing-key" = {
-            source = ./test/caKey;
+            source = ./fixtures/caKey;
             mode = "660";
             group = "signers";
           };
-          "ssh/ssh_host_ed25519_key" = installTestKey ./test/caHostKey;
+          "ssh/ssh_host_ed25519_key" = installTestKey ./fixtures/caHostKey;
         };
       };
     };
@@ -105,12 +105,12 @@ in pkgs.testers.runNixOSTest {
         zzz.builder = {
           enable = true;
           name = "builder1";
-          clientAuthorizedKeyFiles = [ ./test/clientSshKey.pub ];
+          clientAuthorizedKeyFiles = [ ./fixtures/clientSshKey.pub ];
           caDomain = nodes.ca.networking.primaryIPAddress;
-          caHostKey = ./test/caHostKey.pub;
+          caHostKey = ./fixtures/caHostKey.pub;
           sshClientKey = "/etc/ssh/ssh_host_ed25519_key";
         };
-        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./test/builder1SshKey;
+        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./fixtures/builder1SshKey;
       };
     };
 
@@ -120,12 +120,12 @@ in pkgs.testers.runNixOSTest {
         zzz.builder = {
           enable = true;
           name = "builder2";
-          clientAuthorizedKeyFiles = [ ./test/clientSshKey.pub ];
+          clientAuthorizedKeyFiles = [ ./fixtures/clientSshKey.pub ];
           caDomain = nodes.ca.networking.primaryIPAddress;
-          caHostKey = ./test/caHostKey.pub;
+          caHostKey = ./fixtures/caHostKey.pub;
           sshClientKey = "/etc/ssh/ssh_host_ed25519_key";
         };
-        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./test/builder2SshKey;
+        environment.etc."ssh/ssh_host_ed25519_key" = installTestKey ./fixtures/builder2SshKey;
       };
     };
   };
