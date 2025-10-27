@@ -53,6 +53,7 @@
             builder1 = ./systems/builder1.nix;
             builder2 = ./systems/builder2.nix;
             deployment = ./deployment/proxy-ca.nix;
+            deployment-builder = ./deployment/builder.nix;
           };
 
     apps.x86_64-linux.optionDocs =
