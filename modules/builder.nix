@@ -1,11 +1,17 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   options.zzz.builder = {
     enable = lib.mkEnableOption "Enable this machine as a remote builder";
 
     clientAuthorizedKeyFiles = lib.mkOption {
       type = lib.types.listOf lib.types.path;
       description = "A list of authorized public ssh-key files that should be allowed to build on this machine";
-      default = [];
+      default = [ ];
     };
 
     name = lib.mkOption {
@@ -36,67 +42,71 @@
     };
   };
 
-  config = let cfg = config.zzz.builder; in lib.mkIf cfg.enable {
-    users.users.builder-ssh = {
-      isSystemUser = true;
-      shell = pkgs.bash;
-      group = "users";
-      openssh.authorizedKeys.keyFiles = cfg.clientAuthorizedKeyFiles;
-      extraGroups = [ "wheel" ];
-    };
-
-    systemd.services.renewCASignature = {
-      description = "Renew SSH key signature from CA";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
-      script = ''
-        set -o errexit
-        ${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} sign-host-key > ${cfg.caCertLocation}
-        systemctl restart sshd
-      '';
-      serviceConfig = {
-        Type = "oneshot";
-        # The CA may not be reachable. If that's the case, we want a shorter
-        # retry loop than the timer
-        Restart = "on-failure";
-        RestartSec = "100ms";
-        RestartMaxDelaySec = "5min";
-        RestartSteps = 20;
-      };
-      unitConfig = {
-        StartLimitIntervalSec = 0;
-        StartLimitBurst = 0;
+  config =
+    let
+      cfg = config.zzz.builder;
+    in
+    lib.mkIf cfg.enable {
+      users.users.builder-ssh = {
+        isSystemUser = true;
+        shell = pkgs.bash;
+        group = "users";
+        openssh.authorizedKeys.keyFiles = cfg.clientAuthorizedKeyFiles;
+        extraGroups = [ "wheel" ];
       };
 
-    };
+      systemd.services.renewCASignature = {
+        description = "Renew SSH key signature from CA";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
+        script = ''
+          set -o errexit
+          ${pkgs.openssh}/bin/ssh -i ${cfg.sshClientKey} builder-${cfg.name}@${cfg.caDomain} sign-host-key > ${cfg.caCertLocation}
+          systemctl restart sshd
+        '';
+        serviceConfig = {
+          Type = "oneshot";
+          # The CA may not be reachable. If that's the case, we want a shorter
+          # retry loop than the timer
+          Restart = "on-failure";
+          RestartSec = "100ms";
+          RestartMaxDelaySec = "5min";
+          RestartSteps = 20;
+        };
+        unitConfig = {
+          StartLimitIntervalSec = 0;
+          StartLimitBurst = 0;
+        };
 
-    systemd.timers.renewCASignature = {
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnBootSec = "5sec";
-        OnUnitActiveSec = "5h";
-        Persistent = true;
-        Unit = "renewCASignature.service";
+      };
+
+      systemd.timers.renewCASignature = {
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnBootSec = "5sec";
+          OnUnitActiveSec = "5h";
+          Persistent = true;
+          Unit = "renewCASignature.service";
+        };
+      };
+
+      # No idea why the pub key isn't already there
+      systemd.services.genPubKey = {
+        wantedBy = [ "multi-user.target" ];
+        before = [ "sshd.service" ];
+        script = "${pkgs.openssh}/bin/ssh-keygen -yf /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub";
+      };
+
+      programs.ssh.knownHosts.ca = {
+        hostNames = [ cfg.caDomain ];
+        publicKeyFile = cfg.caHostKey;
+      };
+
+      services.openssh = {
+        enable = true;
+        extraConfig = ''
+          HostCertificate ${cfg.caCertLocation}
+        '';
       };
     };
-
-    # No idea why the pub key isn't already there
-    systemd.services.genPubKey = {
-      wantedBy = [ "multi-user.target" ];
-      before = [ "sshd.service" ];
-      script = "${pkgs.openssh}/bin/ssh-keygen -yf /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub";
-    };
-
-    programs.ssh.knownHosts.ca = {
-      hostNames = [ cfg.caDomain ];
-      publicKeyFile = cfg.caHostKey;
-    };
-
-    services.openssh = {
-      enable = true;
-      extraConfig = ''
-        HostCertificate ${cfg.caCertLocation}
-      '';
-    };
-  };
 }
