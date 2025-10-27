@@ -1,4 +1,8 @@
-# nixsshproxy
+# yensid
+#
+[![built with garnix](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fgarnix-io%2Fyensid)](https://garnix.io/repo/garnix-io/yensid)
+
+> Remote builders, more [fantastic](https://en.wikipedia.org/wiki/The_Sorcerer's_Apprentice#Adaptations)
 
 This repo provides a proxy for Nix remote builders. The proxy has several
 advantages over non-proxied remote builder setups:
@@ -51,7 +55,7 @@ buildMachines = [
   sshUser = "builder-ssh";
   sshKey = <your-key>;
   protocol = "ssh-ng";
-  hostName = <proxy-hostname>;
+  hostName = "yensid";
   # Each proxy can only service a homegenous set of builder systems (that is,
   # there can be multiple systems, but all builders must support all of those
   # systems.
@@ -63,14 +67,14 @@ If you are using SSH certificates, you will also need some extra configuration:
 
 ```nix
 programs.ssh = {
-  knownHosts.<proxy-hostname> = {
+  knownHosts.yensid = {
     publicKeyFile = <path-to-public-key>
     certAuthority = true;
   };
   extraConfig = ''
-    Host <proxy-hostname>
-      HostName ${nodes.proxy.networking.primaryIPAddress}
-      HostKeyAlias <proxy-hostname>
+    Host yensid
+      HostName <proxy-hostname>
+      HostKeyAlias yensid
   '';
 };
 ```
@@ -112,4 +116,41 @@ the `proxy`.
 
 ## Custom load balancing
 
+Load balancing by default is based on number of connections. This already gives
+you (if every client uses the same yensid proxy) a *global* load balancing
+(meaning that, unlike vanilla remote builders, *all* builds are considered, not
+just the ones in the same client).
 
+But you can also have arbitrarily complex load balancing strategies. You need
+to write a HAProxy-compatible lua script describing the strategy. As an example,
+you could (as a background [task](https://www.arpalert.org/src/haproxy-lua-api/3.2/index.html#core.register_task)) periodically query your builders for various usage
+statistics (CPU, memory, disk, network, etc.).
+
+# Running it with VMs
+
+We've also added some VMs to the flake file of this repo so that you can
+easily spin up the entire infrastructure for local testing. We use
+[nixos-compose](https://github.com/garnix-io/nixos-compose) for that.
+
+# Running it on localhost
+
+Though primarily meant as an external service. yensid can be an improvement
+over vanilla remote builders even if you never deploy it to a remote, and run
+it on localhost instead. This makes it easy to try it out.
+
+If this is how you are using it, you probably want a custom lua load-balancing
+script.
+
+# Running it on garnix
+
+We have provided a proxy NixOS configuration that you can quickly customize and
+deploy on garnix. Just fork this repo, enable garnix on it, and push a commit.
+
+Note that you should use [raw domains](https://garnix.io/docs/hosting/raw-domains)
+to access the proxy.
+
+# Get in touch
+
+If you have questions or suggestions, either open an issue in this repo, or
+come say hi in the garnix [Discord](https://discord.gg/XtDrPsqpVx) or
+[Matrix](https://matrix.to/#/#garnix-main:matrix.org).
