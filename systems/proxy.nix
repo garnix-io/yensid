@@ -16,9 +16,8 @@
       loadBalancing.strategy = "leastconn";
       # Or, for example:
       # loadBalancing.strategy = "custom";
-      # loadBalancing.backendName = "only-builder-1";
       # loadBalancing.luaFile = pkgs.writeText "custom-balancing.lua" ''
-      #   core.register_fetches('only-builder-1', function(txn)
+      #   core.register_fetches('custom-strategy', function(txn)
       #     return "builder1"
       #   end)
       # '';

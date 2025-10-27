@@ -31,21 +31,14 @@
       luaFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
-        description = "Path to a lua file to load";
+        description = "Path to a lua file to load. It should register a fetch named 'custom-strategy'";
         example = lib.literalExpression ''
           pkgs.writeText "test.lua" ${"''"}
-            core.register_fetches('my-load-balanced-backend', function(txn)
+            core.register_fetches('custom-strategy', function(txn)
               return "name-of-backend"
             end)
           ${"''"}
         '';
-      };
-
-      backendName = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = "Name of the backend registered by the lua program";
-        example = "my-load-balanced-backend";
       };
     };
   };
@@ -59,14 +52,6 @@
         {
           assertion = cfg.loadBalancing.luaFile == null || cfg.loadBalancing.strategy == "custom";
           message = "loadBalancing.luaFile requires strategy custom";
-        }
-        {
-          assertion = cfg.loadBalancing.backendName == null || cfg.loadBalancing.strategy == "custom";
-          message = "loadBalancing.backendName requires strategy custom";
-        }
-        {
-          assertion = cfg.loadBalancing.backendName != null || cfg.loadBalancing.strategy != "custom";
-          message = "loadBalancing strategy custom requires setting backendName";
         }
         {
           assertion = cfg.loadBalancing.luaFile != null || cfg.loadBalancing.strategy != "custom";
@@ -94,9 +79,9 @@
             option tcp-check
             tcp-check expect rstring SSH-2.0-OpenSSH.*
             ${
-              if cfg.loadBalancing.backendName != null then
+              if cfg.loadBalancing.strategy == "custom" then
                 ''
-                  use_backend %[lua.${cfg.loadBalancing.backendName}]
+                  use_backend %[lua.custom-strategy]
                 ''
               else
                 ''
