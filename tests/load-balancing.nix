@@ -70,7 +70,7 @@ pkgs.testers.runNixOSTest {
       };
 
     ca = {
-      imports = [ ./modules/ca.nix ];
+      imports = [ ../modules/ca.nix ];
       config = {
         yensid.ca = {
           enable = true;
@@ -93,7 +93,7 @@ pkgs.testers.runNixOSTest {
     proxy =
       { nodes, ... }:
       {
-        imports = [ ./modules/proxy.nix ];
+        imports = [ ../modules/proxy.nix ];
         config = {
           yensid.proxy = {
             enable = true;
@@ -108,7 +108,7 @@ pkgs.testers.runNixOSTest {
     builder1 =
       { nodes, ... }:
       {
-        imports = [ ./modules/builder.nix ];
+        imports = [ ../modules/builder.nix ];
         config = {
           yensid.builder = {
             enable = true;
@@ -125,7 +125,7 @@ pkgs.testers.runNixOSTest {
     builder2 =
       { nodes, ... }:
       {
-        imports = [ ./modules/builder.nix ];
+        imports = [ ../modules/builder.nix ];
         config = {
           yensid.builder = {
             enable = true;
