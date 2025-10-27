@@ -72,7 +72,7 @@ pkgs.testers.runNixOSTest {
     ca = {
       imports = [ ./modules/ca.nix ];
       config = {
-        zzz.ca = {
+        yensid.ca = {
           enable = true;
           builders = {
             builder1.sshPubKeyFile = ./fixtures/builder1SshKey.pub;
@@ -95,7 +95,7 @@ pkgs.testers.runNixOSTest {
       {
         imports = [ ./modules/proxy.nix ];
         config = {
-          zzz.proxy = {
+          yensid.proxy = {
             enable = true;
             builders = [
               {
@@ -116,7 +116,7 @@ pkgs.testers.runNixOSTest {
       {
         imports = [ ./modules/builder.nix ];
         config = {
-          zzz.builder = {
+          yensid.builder = {
             enable = true;
             name = "builder1";
             clientAuthorizedKeyFiles = [ ./fixtures/clientSshKey.pub ];
@@ -133,7 +133,7 @@ pkgs.testers.runNixOSTest {
       {
         imports = [ ./modules/builder.nix ];
         config = {
-          zzz.builder = {
+          yensid.builder = {
             enable = true;
             name = "builder2";
             clientAuthorizedKeyFiles = [ ./fixtures/clientSshKey.pub ];

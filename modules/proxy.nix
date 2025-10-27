@@ -1,6 +1,6 @@
 { config, lib, ... }:
 {
-  options.zzz.proxy = {
+  options.yensid.proxy = {
     enable = lib.mkEnableOption "Enable this machine as a proxy";
 
     builders =
@@ -49,7 +49,7 @@
 
   config =
     let
-      cfg = config.zzz.proxy;
+      cfg = config.yensid.proxy;
     in
     lib.mkIf cfg.enable {
       networking.firewall.allowedTCPPorts = [ 22 ];

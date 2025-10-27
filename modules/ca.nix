@@ -5,7 +5,7 @@
   ...
 }:
 {
-  options.zzz.ca = {
+  options.yensid.ca = {
     enable = lib.mkEnableOption "Enable this machine as a certificate authority";
     builders =
       let
@@ -23,7 +23,7 @@
 
   config =
     let
-      cfg = config.zzz.ca;
+      cfg = config.yensid.ca;
     in
     lib.mkIf cfg.enable {
 

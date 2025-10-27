@@ -5,7 +5,7 @@
   ...
 }:
 {
-  options.zzz.builder = {
+  options.yensid.builder = {
     enable = lib.mkEnableOption "Enable this machine as a remote builder";
 
     clientAuthorizedKeyFiles = lib.mkOption {
@@ -44,7 +44,7 @@
 
   config =
     let
-      cfg = config.zzz.builder;
+      cfg = config.yensid.builder;
     in
     lib.mkIf cfg.enable {
       users.users.builder-ssh = {

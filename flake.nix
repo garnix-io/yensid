@@ -71,7 +71,7 @@
             imports = [ ./modules/ca.nix ];
             config = {
               networking.hostName = "ca";
-              zzz.ca = {
+              yensid.ca = {
                 enable = true;
                 builders = {
                   builder1.sshPubKeyFile = ./tests/fixtures/builder1SshKey.pub;
@@ -97,7 +97,7 @@
                 networking.hostName = "proxy";
                 services.openssh.ports = [ 2222 ];
 
-                zzz.proxy = {
+                yensid.proxy = {
                   enable = true;
                   builders = [
                     {
@@ -124,7 +124,7 @@
             imports = [ ./modules/builder.nix ];
             config = {
               networking.hostName = "builder1";
-              zzz.builder = {
+              yensid.builder = {
                 enable = true;
                 name = "builder1";
                 clientAuthorizedKeyFiles = [ ./tests/fixtures/clientSshKey.pub ];
@@ -140,7 +140,7 @@
             imports = [ ./modules/builder.nix ];
             config = {
               networking.hostName = "builder2";
-              zzz.builder = {
+              yensid.builder = {
                 enable = true;
                 name = "builder2";
                 clientAuthorizedKeyFiles = [ ./tests/fixtures/clientSshKey.pub ];
