@@ -97,16 +97,10 @@ pkgs.testers.runNixOSTest {
         config = {
           yensid.proxy = {
             enable = true;
-            builders = [
-              {
-                name = "builder1";
-                ip = nodes.builder1.networking.primaryIPAddress;
-              }
-              {
-                name = "builder2";
-                ip = nodes.builder2.networking.primaryIPAddress;
-              }
-            ];
+            builders = {
+              builder1.ip = nodes.builder1.networking.primaryIPAddress;
+              builder2.ip = nodes.builder2.networking.primaryIPAddress;
+            };
           };
         };
       };

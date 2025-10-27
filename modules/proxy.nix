@@ -7,7 +7,6 @@
       let
         builder = lib.types.submodule {
           options = {
-            name = lib.mkOption { type = lib.types.str; };
             ip = lib.mkOption { type = lib.types.str; };
             port = lib.mkOption {
               type = lib.types.port;
@@ -16,7 +15,7 @@
           };
         };
       in
-      lib.mkOption { type = lib.types.listOf builder; };
+      lib.mkOption { type = lib.types.attrsOf builder; };
 
     customLoadBalancing =
       let
@@ -85,14 +84,22 @@
             }
 
           backend all
-            ${lib.concatMapStrings (builder: ''
-              server ${builder.name} ${builder.ip}:${toString builder.port} check inter 10s fall 2 rise 1
-            '') cfg.builders}
+            ${lib.concatMapAttrsStringSep "" (
+              name:
+              { ip, port }:
+              ''
+                server ${name} ${ip}:${toString port} check inter 10s fall 2 rise 1
+              ''
+            ) cfg.builders}
 
-          ${lib.concatMapStrings (builder: ''
-            backend ${builder.name}
-              server ${builder.name} ${builder.ip}:${toString builder.port} check inter 10s fall 2 rise 1
-          '') cfg.builders}
+          ${lib.concatMapAttrsStringSep "" (
+            name:
+            { ip, port }:
+            ''
+              backend ${name}
+                server ${name} ${ip}:${toString port} check inter 10s fall 2 rise 1
+            ''
+          ) cfg.builders}
         '';
       };
     };

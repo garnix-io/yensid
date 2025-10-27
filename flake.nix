@@ -99,16 +99,10 @@
 
                 yensid.proxy = {
                   enable = true;
-                  builders = [
-                    {
-                      name = "builder1";
-                      ip = "builder1";
-                    }
-                    {
-                      name = "builder2";
-                      ip = "builder2";
-                    }
-                  ];
+                  builders = {
+                    builder1.ip = "builder1";
+                    builder2.ip = "builder2";
+                  };
                   customLoadBalancing.backendName = "only-builder-1";
                   customLoadBalancing.lua = pkgs.writeText "custom-balancing.lua" ''
                     core.register_fetches('only-builder-1', function(txn)
