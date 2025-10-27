@@ -38,6 +38,9 @@
       };
     };
 
+    age.identityPaths = [
+     "/var/garnix/keys/repo-key"
+    ];
     age.secrets = {
       ca.file = ./ca.age;
       hostKey.file = ./hostKey.age;
