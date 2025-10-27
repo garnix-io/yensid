@@ -28,7 +28,7 @@
         default = "leastconn";
       };
 
-      lua = lib.mkOption {
+      luaFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
         description = "Path to a lua file to load";
@@ -57,8 +57,8 @@
     lib.mkIf cfg.enable {
       assertions = [
         {
-          assertion = cfg.loadBalancing.lua == null || cfg.loadBalancing.strategy == "custom";
-          message = "loadBalancing.lua requires strategy custom";
+          assertion = cfg.loadBalancing.luaFile == null || cfg.loadBalancing.strategy == "custom";
+          message = "loadBalancing.luaFile requires strategy custom";
         }
         {
           assertion = cfg.loadBalancing.backendName == null || cfg.loadBalancing.strategy == "custom";
@@ -69,8 +69,8 @@
           message = "loadBalancing strategy custom requires setting backendName";
         }
         {
-          assertion = cfg.loadBalancing.lua != null || cfg.loadBalancing.strategy != "custom";
-          message = "loadBalancing strategy custom requires setting lua";
+          assertion = cfg.loadBalancing.luaFile != null || cfg.loadBalancing.strategy != "custom";
+          message = "loadBalancing strategy custom requires setting luaFile";
         }
       ];
 
@@ -79,7 +79,7 @@
         enable = true;
         config = ''
           global
-           ${lib.optionalString (cfg.loadBalancing.lua != null) "lua-load ${cfg.loadBalancing.lua}"}
+           ${lib.optionalString (cfg.loadBalancing.luaFile != null) "lua-load ${cfg.loadBalancing.luaFile}"}
 
           defaults
             log global

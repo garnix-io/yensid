@@ -17,7 +17,7 @@
       # Or, for example:
       # loadBalancing.strategy = "custom";
       # loadBalancing.backendName = "only-builder-1";
-      # loadBalancing.lua = pkgs.writeText "custom-balancing.lua" ''
+      # loadBalancing.luaFile = pkgs.writeText "custom-balancing.lua" ''
       #   core.register_fetches('only-builder-1', function(txn)
       #     return "builder1"
       #   end)
