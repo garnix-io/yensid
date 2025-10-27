@@ -43,5 +43,29 @@
             builder1 = ./systems/builder1.nix;
             builder2 = ./systems/builder2.nix;
           };
-    };
+
+    apps.x86_64-linux.optionDocs =
+      let
+        modules = import (pkgs.path + "/nixos/lib/eval-config.nix") {
+          system = "x86_64-linux";
+          modules = [
+              ./modules/ca.nix
+              ./modules/proxy.nix
+              ./modules/builder.nix
+          ];
+        };
+        cleanedModules = lib.filterAttrs (n: v: n == "zzz") modules.options;
+        docs = pkgs.nixosOptionsDoc {
+          options = cleanedModules;
+      };
+      in
+        { type = "app";
+          program = lib.getExe (pkgs.writeShellApplication {
+            name = "module-options.md";
+            text = ''
+              cp ${docs.optionsCommonMark} docs/options.md
+            '';
+          });
+        };
+      };
 }

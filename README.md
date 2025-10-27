@@ -25,6 +25,8 @@ above. You can even *run the proxy on your computer*; the proxy won't be able
 to load-balance globally in that case, but it may be able to still make more
 informed decisions about how to distribute load.
 
+In addition to the documentation below, a list of all configuration options is
+available [here](./docs/options.md).
 
 # Usage
 

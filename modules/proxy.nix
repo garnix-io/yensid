@@ -7,10 +7,14 @@
       let
         builder = lib.types.submodule {
           options = {
-            ip = lib.mkOption { type = lib.types.str; };
+            ip = lib.mkOption {
+              type = lib.types.str;
+              description = "IP address of builder";
+            };
             port = lib.mkOption {
               type = lib.types.port;
               default = 22;
+              description = "The port to use when connecting to the builder.";
             };
           };
         };

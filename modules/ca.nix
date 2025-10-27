@@ -18,7 +18,10 @@
           };
         };
       in
-      lib.mkOption { type = lib.types.attrsOf builder; };
+      lib.mkOption {
+        type = lib.types.attrsOf builder;
+        description = "The list of builders.";
+      };
   };
 
   config =
