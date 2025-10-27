@@ -24,9 +24,8 @@
       proxy = {
         enable = true;
         builders = {
-          # Change this to the IP addresses of your builder
-          builder1.ip = "builder1";
-          builder2.ip = "builder2";
+          # Change this to the addresses of your builder
+          builder.ip = "builder.readme.yensid.garnix-io.raw.garnix.me";
         };
         loadBalancing.strategy = "leastconn";
         # Or, for example:

@@ -22,6 +22,9 @@
       source = config.age.secrets.builderHostKey.path;
       mode = "7000";
     };
+    age.identityPaths = [
+     "/var/garnix/keys/repo-key"
+    ];
     age.secrets = {
       builderHostKey.file = ./builderHostKey.age;
     };
