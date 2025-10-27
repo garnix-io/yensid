@@ -3,3 +3,11 @@ servers:
     deployment:
       type: on-branch
       branch: jkarni/readme
+
+builds:
+  exclude:
+  - nixosConfigurations.ca
+  - nixosConfigurations.proxy
+  - nixosConfigurations.client
+  - nixosConfigurations.builder1
+  - nixosConfigurations.builder2
