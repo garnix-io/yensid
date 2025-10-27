@@ -52,7 +52,6 @@
     in
     lib.mkIf cfg.enable {
       networking.firewall.allowedTCPPorts = [ 22 ];
-      systemd.services.haproxy.serviceConfig.StartLimitIntervalSec = 10;
       services.haproxy = {
         enable = true;
         config = ''
