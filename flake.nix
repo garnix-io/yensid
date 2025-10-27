@@ -1,9 +1,47 @@
 {
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-  outputs = { nixpkgs, ... }: let
-    pkgs = import nixpkgs { system = "x86_64-linux"; };
-    lib = nixpkgs.lib;
-  in {
-    checks.x86_64-linux.mainTest = import ./test.nix { inherit pkgs lib; };
-  };
+  outputs =
+    { self, nixpkgs, ... }:
+    let
+      pkgs = import nixpkgs { system = "x86_64-linux"; };
+      lib = nixpkgs.lib;
+    in
+    {
+      checks.x86_64-linux.mainTest = import ./tests/load-balancing.nix { inherit pkgs lib; };
+
+      nixosModules = {
+        builder = ./modules/builder.nix;
+        ca = ./modules/ca.nix;
+        proxy = ./modules/proxy.nix;
+      };
+
+      nixosConfigurations =
+        lib.mapAttrs
+          (
+            _: system:
+            nixpkgs.lib.nixosSystem {
+              modules = [
+                {
+                  nixpkgs.hostPlatform = "x86_64-linux";
+                  system.stateVersion = "25.05";
+                }
+                (import system {
+                  nixosModules = self.nixosModules;
+
+                  installTestKey = keyFile: {
+                    source = keyFile;
+                    mode = "700";
+                  };
+                })
+              ];
+            }
+          )
+          {
+            ca = ./systems/ca.nix;
+            client = ./systems/client.nix;
+            proxy = ./systems/proxy.nix;
+            builder1 = ./systems/builder1.nix;
+            builder2 = ./systems/builder2.nix;
+          };
+    };
 }

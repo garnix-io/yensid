@@ -1,37 +1,50 @@
-{ config, pkgs, lib, ... }: {
-  options.zzz.ca = {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
+  options.yensid.ca = {
     enable = lib.mkEnableOption "Enable this machine as a certificate authority";
     builders =
-      let builder = lib.types.submodule {
-        options = {
-          sshPubKeyFile = lib.mkOption {
-            description = "Path to the builder's public SSH key.";
-            type = lib.types.path;
+      let
+        builder = lib.types.submodule {
+          options = {
+            sshPubKeyFile = lib.mkOption {
+              description = "Path to the builder's public SSH key.";
+              type = lib.types.path;
+            };
           };
         };
-      };
-      in lib.mkOption { type = lib.types.attrsOf builder; };
+      in
+      lib.mkOption { type = lib.types.attrsOf builder; };
   };
 
-  config = let cfg = config.zzz.ca; in lib.mkIf cfg.enable {
+  config =
+    let
+      cfg = config.yensid.ca;
+    in
+    lib.mkIf cfg.enable {
 
-    users.users = lib.mapAttrs' (builderName: cfg:
-      lib.nameValuePair "builder-${builderName}"
-      {
-        isSystemUser = true;
-        shell = pkgs.bash;
-        group = "builder-${builderName}";
-        extraGroups = [ "signers" ];
-        openssh.authorizedKeys.keyFiles = [ cfg.sshPubKeyFile ];
-      }) cfg.builders;
+      users.users = lib.mapAttrs' (
+        builderName: cfg:
+        lib.nameValuePair "builder-${builderName}" {
+          isSystemUser = true;
+          shell = pkgs.bash;
+          group = "builder-${builderName}";
+          extraGroups = [ "signers" ];
+          openssh.authorizedKeys.keyFiles = [ cfg.sshPubKeyFile ];
+        }
+      ) cfg.builders;
 
-    users.groups =
-      (lib.mapAttrs' (builderName: _:
-        lib.nameValuePair "builder-${builderName}" {}
-    ) cfg.builders) // { signers = {};};
+      users.groups =
+        (lib.mapAttrs' (builderName: _: lib.nameValuePair "builder-${builderName}" { }) cfg.builders)
+        // {
+          signers = { };
+        };
 
-    services.openssh =
-      {
+      services.openssh = {
         enable = true;
         extraConfig = ''
 
@@ -47,18 +60,21 @@
         '';
       };
 
-    environment.systemPackages = [
-      (pkgs.writeShellApplication {
-        name = "sign-host-key";
-        runtimeInputs = [ pkgs.openssh pkgs.coreutils ];
-        text = ''
-          tmp=$(mktemp -d)
-          cat "$1" > "$tmp/host.pub"
-          ssh-keygen -h -s /etc/ca-signing-key/ca-signing-key -V -1d:+1d -I garnix-ca "$tmp"/host.pub
-          cat "$tmp/host-cert.pub"
-          rm -rf "$tmp"
-        '';
-      })
-    ];
-  };
+      environment.systemPackages = [
+        (pkgs.writeShellApplication {
+          name = "sign-host-key";
+          runtimeInputs = [
+            pkgs.openssh
+            pkgs.coreutils
+          ];
+          text = ''
+            tmp=$(mktemp -d)
+            cat "$1" > "$tmp/host.pub"
+            ssh-keygen -h -s /etc/ca-signing-key/ca-signing-key -V -1d:+1d -I garnix-ca "$tmp"/host.pub
+            cat "$tmp/host-cert.pub"
+            rm -rf "$tmp"
+          '';
+        })
+      ];
+    };
 }
