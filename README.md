@@ -1,8 +1,9 @@
 # yensid
-#
+
 [![built with garnix](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fgarnix-io%2Fyensid)](https://garnix.io/repo/garnix-io/yensid)
 
-> Remote builders, more [fantastic](https://en.wikipedia.org/wiki/The_Sorcerer's_Apprentice#Adaptations)
+> Remote builders, but more [fantastic](https://en.wikipedia.org/wiki/The_Sorcerer's_Apprentice#Adaptations)
+#
 
 This repo provides a proxy for Nix remote builders. The proxy has several
 advantages over non-proxied remote builder setups:
@@ -81,7 +82,14 @@ programs.ssh = {
 
 ## Proxy
 
+The proxy is the main component of yensid. It load balances between your remote
+builders based on a configurable strategy and, if you are using SSH
+certificates, allows clients to be oblivious to details of your builders (host
+names, SSH keys, how many there are).
 
+The main configuration options are what builders there are, and what the load
+balancing strategy is (see the [Custom load balancing](#custom-load-balancing)
+section for more details).
 
 ## CA
 
