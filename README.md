@@ -152,7 +152,12 @@ script.
 # Running it on garnix
 
 We have provided a proxy NixOS configuration that you can quickly customize and
-deploy on garnix. Just fork this repo, enable garnix on it, and push a commit.
+deploy on garnix. If you already have an account on garnix, deploying is simple:
+
+- Fork this repository
+- Make sure garnix is enabled in your fork
+- Run `./deployment/secrets.nix <your-repo>`
+- Commit and push the change (to the main branch)
 
 Note that you should use [raw domains](https://garnix.io/docs/hosting/raw-domains)
 to access the proxy.
