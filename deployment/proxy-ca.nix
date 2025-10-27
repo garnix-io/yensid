@@ -14,6 +14,12 @@
 
     garnix.server.enable = true;
 
+    # TODO: change this to your key if you want to be able to SSH into the
+    # proxy itself (port 2222)
+    users.users.root.openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVpNqdbM7uE1xkKoXztoaAtKtDHoqHS3DrzxYKsDgxa jkarni@garnix.io"
+    ];
+
     yensid = {
       proxy = {
         enable = true;
