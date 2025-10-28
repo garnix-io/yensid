@@ -2,7 +2,7 @@ servers:
   - configuration: deployment
     deployment:
       type: on-branch
-      branch: main
+      branch: readme
 
 builds:
   exclude:
