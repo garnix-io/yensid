@@ -45,6 +45,59 @@ machine).
 If you are using SSH certificates, the first step is to generate the key
 (ideally already in the CA server, if it's already been provisioned).
 
+A full flake of a proxy with CA enabled looks like this:
+
+```nix
+{
+   inputs.nixpkgs.url = ...
+   inputs.yensid.url = "github:garnix-io/yensid";
+
+   outputs = { self, nixpkgs, yensid, ...}: {
+
+     nixosConfigurations.proxy = nixpkgs.lib.nixosSystem {
+       system = "x86_64-linux";
+       modules = [
+           {
+             imports = [
+              yensid.nixosModules.proxy
+              yensid.nixosModules.ca
+             ];
+             config = {
+
+               ...
+               yensid = {
+                 proxy = {
+                   enable = true;
+                   builders = {
+                     # Change the IP addresses (and names) as needed.
+                     builder1.ip = <IP>;
+                     builder2.ip = <IP>;
+                   };
+                   loadBalancing.strategy = "leastconn";
+                 };
+                 # If you enable CA, the generated CA key must be placed in
+                 # /etc/ca-signing-key/ca-signing-key
+                 ca = {
+                   enable = true;
+                   builders = {
+                     builder1.sshPubKeyFile = ./somefile1;
+                     builder2.sshPubKeyFile = ./somefile2;
+                   };
+                 };
+               };
+             };
+
+           }
+       ]
+     };
+   };
+}
+```
+
+Check out the
+[`systems/`](https://github.com/garnix-io/yensid/tree/main/systems) directory
+for some examples.
+
 
 ## Client
 
