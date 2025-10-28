@@ -155,6 +155,19 @@ We've also added some VMs to the flake file of this repo so that you can
 easily spin up the entire infrastructure for local testing. We use
 [nixos-compose](https://github.com/garnix-io/nixos-compose) for that.
 
+nixos-compose is in the dev shell, so after entering a devshell you can test it
+out by running:
+
+```bash
+$ nixos-compose up
+# nixos-compose adds /etc/hosts file too late for haproxy, so you will need to restart it:
+$ nixos-compose ssh proxy -- sudo systemctl restart haproxy
+# now, on the client `nix` will build on the cluster:
+$ nixos-compose ssh client -- nix build ...
+# you can also ssh in to the cluster directly to observe the load balancing:
+$ nixos-compose ssh client -- sudo ssh cluster -i /etc/ssh/client -l builder-ssh hostname
+```
+
 # Running it on localhost
 
 Though primarily meant as an external service. yensid can be an improvement

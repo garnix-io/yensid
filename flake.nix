@@ -2,9 +2,17 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
   inputs.agenix.url = "github:ryantm/agenix";
   inputs.garnix-lib.url = "github:garnix-io/garnix-lib";
+  inputs.nixos-compose.url = "github:garnix-io/nixos-compose";
 
   outputs =
-    { self, nixpkgs, agenix, garnix-lib, ... }:
+    {
+      self,
+      nixpkgs,
+      agenix,
+      garnix-lib,
+      nixos-compose,
+      ...
+    }:
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
       lib = nixpkgs.lib;
@@ -12,7 +20,10 @@
     {
       checks.x86_64-linux.mainTest = import ./tests/load-balancing.nix { inherit pkgs lib; };
       devShells.x86_64-linux.default = pkgs.mkShell {
-        buildInputs = [ agenix.packages.x86_64-linux.default ];
+        buildInputs = [
+          agenix.packages.x86_64-linux.default
+          nixos-compose.packages.x86_64-linux.default
+        ];
       };
 
       nixosModules = {
