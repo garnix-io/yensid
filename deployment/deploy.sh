@@ -27,3 +27,5 @@ rm ca.age || true
 printf "Generating and encrypting the host key\n"
 rm hostKey.age || true
 (mkfifo key && ((cat key ; rm key)&) && (echo y | ssh-keygen -N '' -q -f key > /dev/null)) | agenix -e hostKey.age
+
+printf "Done. Check the changes, commit, and push (to 'main') for garnix to deploy\n"

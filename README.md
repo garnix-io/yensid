@@ -52,16 +52,16 @@ On your client, remove all build machines and replace them with the single
 ssh proxy:
 
 ```nix
-buildMachines = [
+buildMachines = [{
   sshUser = "builder-ssh";
   sshKey = <your-key>;
   protocol = "ssh-ng";
-  hostName = "yensid";
+  hostName = <proxy-hostname>;
   # Each proxy can only service a homegenous set of builder systems (that is,
   # there can be multiple systems, but all builders must support all of those
   # systems.
   systems = [ "x86_64-linux" ];
-];
+}];
 ```
 
 If you are using SSH certificates, you will also need some extra configuration:
@@ -72,11 +72,6 @@ programs.ssh = {
     publicKeyFile = <path-to-public-key>
     certAuthority = true;
   };
-  extraConfig = ''
-    Host yensid
-      HostName <proxy-hostname>
-      HostKeyAlias yensid
-  '';
 };
 ```
 
@@ -156,14 +151,15 @@ deploy on garnix. If you already have an account on garnix, deploying is simple:
 
 - Fork this repository
 - Make sure garnix is enabled in your fork
-- Run `./deployment/secrets.nix <your-repo>`
+- Run `nix run .#deployProxyViaGarnix <your-repo>`
+- Add any builders to ./deployment/proxy-ca.nix
 - Commit and push the change (to the main branch)
 
 Note that you should use [raw domains](https://garnix.io/docs/hosting/raw-domains)
 to access the proxy.
 
 # Get in touch
-
+;
 If you have questions or suggestions, either open an issue in this repo, or
 come say hi in the garnix [Discord](https://discord.gg/XtDrPsqpVx) or
 [Matrix](https://matrix.to/#/#garnix-main:matrix.org).

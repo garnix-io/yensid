@@ -55,28 +55,42 @@
             deployment = ./deployment/proxy-ca.nix;
           };
 
-    apps.x86_64-linux.optionDocs =
-      let
-        modules = import (pkgs.path + "/nixos/lib/eval-config.nix") {
-          system = "x86_64-linux";
-          modules = [
-              ./modules/ca.nix
-              ./modules/proxy.nix
-              ./modules/builder.nix
+    apps.x86_64-linux = {
+      deployProxyViaGarnix = {
+        type = "app";
+        program = lib.getExe (pkgs.writeShellApplication {
+          name = "deploy-proxy-via-garnix";
+          text = ./deployment/deploy.sh;
+          runtimeInputs = [
+            pkgs.coreutils
+            pkgs.gnused
+            agenix.packages.x86_64-linux.default
           ];
-        };
-        cleanedModules = lib.filterAttrs (n: v: n == "zzz") modules.options;
-        docs = pkgs.nixosOptionsDoc {
-          options = cleanedModules;
+        });
       };
-      in
-        { type = "app";
-          program = lib.getExe (pkgs.writeShellApplication {
-            name = "module-options.md";
-            text = ''
-              cp ${docs.optionsCommonMark} docs/options.md
-            '';
-          });
+      optionDocs =
+        let
+          modules = import (pkgs.path + "/nixos/lib/eval-config.nix") {
+            system = "x86_64-linux";
+            modules = [
+                ./modules/ca.nix
+                ./modules/proxy.nix
+                ./modules/builder.nix
+            ];
+          };
+          cleanedModules = lib.filterAttrs (n: v: n == "yensid") modules.options;
+          docs = pkgs.nixosOptionsDoc {
+            options = cleanedModules;
         };
-      };
+        in
+          { type = "app";
+            program = lib.getExe (pkgs.writeShellApplication {
+              name = "module-options.md";
+              text = ''
+                cp ${docs.optionsCommonMark} docs/options.md
+              '';
+            });
+          };
+        };
+    };
 }
