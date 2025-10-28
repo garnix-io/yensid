@@ -23,9 +23,10 @@
     yensid = {
       proxy = {
         enable = true;
+        # Change this to the addresses of your builder
         builders = {
-          # Change this to the addresses of your builder
-          builder.ip = "builder.readme.yensid.garnix-io.raw.garnix.me";
+          builder1.ip = "142.132.141.88";
+          builder2.ip = "142.132.141.89";
         };
         loadBalancing.strategy = "leastconn";
         # Or, for example:
@@ -37,8 +38,9 @@
         # '';
       };
       ca = {
-        enable = true;
-        # TODO add your builders here
+        # TODO if you want certificate-authentication, enable this, and add
+        # your builders below
+        enable = false;
         builders = { };
       };
     };

@@ -27,7 +27,3 @@ rm ca.age || true
 printf "Generating and encrypting the host key\n"
 rm hostKey.age || true
 (mkfifo key && ((cat key ; rm key)&) && (echo y | ssh-keygen -N '' -q -f key > /dev/null)) | agenix -e hostKey.age
-
-printf "Generating and encrypting the builder host key\n"
-rm builderHostKey.age || true
-(mkfifo key && ((cat key ; rm key)&) && (echo y | ssh-keygen -N '' -q -f key > builderHostKey.pub)) | agenix -e builderHostKey.age
