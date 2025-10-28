@@ -1,21 +1,28 @@
 { config, lib, ... }:
 {
   options.yensid.proxy = {
-    enable = lib.mkEnableOption "Enable this machine as a proxy";
+    enable = lib.mkEnableOption "proxying Nix builds";
 
     builders =
       let
         builder = lib.types.submodule {
           options = {
-            ip = lib.mkOption { type = lib.types.str; };
+            ip = lib.mkOption {
+              type = lib.types.str;
+              description = "IP address of builder";
+            };
             port = lib.mkOption {
               type = lib.types.port;
               default = 22;
+              description = "The port to use when connecting to the builder.";
             };
           };
         };
       in
-      lib.mkOption { type = lib.types.attrsOf builder; };
+      lib.mkOption {
+        type = lib.types.attrsOf builder;
+        description = "An attrset of builders.";
+      };
 
     loadBalancing = {
       strategy = lib.mkOption {
@@ -26,6 +33,7 @@
           (lib.types.strMatching "custom")
         ];
         default = "leastconn";
+        description = "How to load balance between builders. The 'custom' option can be used to write your own logic in lua.";
       };
 
       luaFile = lib.mkOption {

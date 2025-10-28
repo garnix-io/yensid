@@ -6,7 +6,7 @@
 }:
 {
   options.yensid.ca = {
-    enable = lib.mkEnableOption "Enable this machine as a certificate authority";
+    enable = lib.mkEnableOption "certificate authority functionality";
     builders =
       let
         builder = lib.types.submodule {
@@ -18,7 +18,10 @@
           };
         };
       in
-      lib.mkOption { type = lib.types.attrsOf builder; };
+      lib.mkOption {
+        type = lib.types.attrsOf builder;
+        description = "The list of builders.";
+      };
   };
 
   config =

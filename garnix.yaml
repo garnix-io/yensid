@@ -1,0 +1,13 @@
+servers:
+  - configuration: deployment
+    deployment:
+      type: on-branch
+      branch: main
+
+builds:
+  exclude:
+  - nixosConfigurations.ca
+  - nixosConfigurations.proxy
+  - nixosConfigurations.client
+  - nixosConfigurations.builder1
+  - nixosConfigurations.builder2

@@ -6,7 +6,7 @@
 }:
 {
   options.yensid.builder = {
-    enable = lib.mkEnableOption "Enable this machine as a remote builder";
+    enable = lib.mkEnableOption "remote building.";
 
     clientAuthorizedKeyFiles = lib.mkOption {
       type = lib.types.listOf lib.types.path;
