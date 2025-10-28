@@ -11,7 +11,6 @@
     in
     {
       checks.x86_64-linux.mainTest = import ./tests/load-balancing.nix { inherit pkgs lib; };
-
       devShells.x86_64-linux.default = pkgs.mkShell {
         buildInputs = [ agenix.packages.x86_64-linux.default ];
       };

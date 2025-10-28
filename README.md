@@ -75,6 +75,26 @@ programs.ssh = {
 };
 ```
 
+If you are *not* using SSH certificates, you will get errors like this:
+
+```
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ED25519 key sent by the remote host is ???.
+Please contact your system administrator.
+Add correct host key in .../.ssh/known_hosts to get rid of this message.
+Offending ED25519 key in .../.ssh/known_hosts:306
+```
+
+This is because there will be multiple servers, with different SSH keys, behind
+the same proxy. You can add multiple lines to your `known_hosts` manually
+to fix this. That said, it's both safer and more pleasant to use certificates.
+
+
 ## Proxy
 
 The proxy is the main component of yensid. It load balances between your remote
