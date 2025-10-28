@@ -1,4 +1,4 @@
-let key = "age1ntnen5gwxluad96zly8jjaqycffhehm5hw9glyd5pazhrtp9c5cs8yg2w5";
+let key = builtins.readFile ./repo-key;
 in
 {
   "ca.age".publicKeys = [ key ];
